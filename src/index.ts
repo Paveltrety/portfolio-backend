@@ -9,8 +9,11 @@ dotenv.config();
 const app = express();
 
 app.use(express.json());
-app.use(cors({ credentials: true, origin: 'http://localhost:3000' }));
 
+cors({
+  credentials: true,
+  origin: process.env.CLIENT_ORIGIN || 'https://paveltrety.ru',
+});
 mongoose
   .connect(process.env.MONGO_URI as string)
   .then(() => console.log('MongoDB connected'))
