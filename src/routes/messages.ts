@@ -4,7 +4,7 @@ import Message from '../models/Messages';
 const router = Router();
 
 // Получить все сообщения
-router.get('/list', async (req: Request, res: Response) => {
+router.get('/list', async (_req: Request, res: Response) => {
   try {
     const messages = await Message.find().sort({ date: -1 });
     const convertedMessages = messages.map(({ messageId, message, date, name }) => ({
