@@ -8,7 +8,7 @@ const router = Router();
 router.get('/parse-vacancy', async (req, res) => {
   try {
     const { id } = req.query;
-
+    console.log(id, 'parse-vacancy id');
     if (!id || typeof id !== 'string') {
       return res.status(400).json({ message: 'Неверные данные' });
     }
@@ -24,7 +24,7 @@ router.get('/parse-vacancy', async (req, res) => {
         description: existingVacancy.description,
       });
     }
-
+    console.log('стоим перед дискрипшен');
     const description = await getDescriptionVacancy(id);
 
     if (!description) {
@@ -45,6 +45,8 @@ router.get('/parse-vacancy', async (req, res) => {
       description: newVacancy.description,
     });
   } catch (e) {
+    console.log(e, 'попали в 500');
+
     res.status(500).json({ message: 'Ошибка сервера' });
   }
 });
