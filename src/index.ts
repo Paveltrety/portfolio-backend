@@ -16,7 +16,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: [process.env.CLIENT_ORIGIN || 'https://paveltrety.ru', 'http://localhost:5173', 'https://cover-letter-lemon.vercel.app'],
+    origin: [process.env.CLIENT_ORIGIN || 'https://paveltrety.ru', 'http://localhost:5173', 'https://paveltrety-cover-letter.vercel.app'],
     credentials: true,
   }),
 );
