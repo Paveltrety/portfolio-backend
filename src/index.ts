@@ -3,23 +3,31 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import messagesRoutes from './routes/messages';
+import headHunterRoutes from './routes/vacancies';
+import { initializeOpenRouter } from './openAI/initializeOpenRouter';
 
 dotenv.config();
+
+initializeOpenRouter(process.env.OPEN_AI_TOKEN!);
 
 const app = express();
 
 app.use(express.json());
 
-cors({
-  credentials: true,
-  origin: process.env.CLIENT_ORIGIN || 'https://paveltrety.ru',
-});
+app.use(
+  cors({
+    origin: [process.env.CLIENT_ORIGIN || 'https://paveltrety.ru', 'http://localhost:5173', 'https://cover-letter-lemon.vercel.app'],
+    credentials: true,
+  }),
+);
+
 mongoose
   .connect(process.env.MONGO_URI as string)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('Connection error', err));
 
 app.use('/api/messages', messagesRoutes);
+app.use('/api/head-hunter', headHunterRoutes);
 
 const PORT = process.env.PORT || 5002;
 
