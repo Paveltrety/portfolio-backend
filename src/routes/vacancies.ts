@@ -2,18 +2,20 @@ import { Router } from 'express';
 import { getDescriptionVacancy } from '../headHunter/getDescriptionVacancy';
 import { getCustomCoverLetter } from '../headHunter/getCustomCoverLetter';
 import Vacancy from '../models/Vacancy';
+import { IVacancyInfo } from '../types/vacancies';
 
 const router = Router();
 
 router.get('/parse-vacancy', async (req, res) => {
   try {
-    const { id } = req.query;
+    const vacancyInfo = req.query as unknown as IVacancyInfo;
+    const { id, aggregatorType } = vacancyInfo;
 
-    if (!id || typeof id !== 'string') {
+    if (!id || typeof id !== 'string' || !aggregatorType) {
       return res.status(400).json({ message: 'Неверные данные' });
     }
 
-    const vacancyIdFromLink = Number(id);
+    const vacancyIdFromLink = `${id}_${aggregatorType}`;
 
     const existingVacancy = await Vacancy.findOne({
       vacancyIdFromLink,
@@ -21,27 +23,27 @@ router.get('/parse-vacancy', async (req, res) => {
 
     if (existingVacancy) {
       return res.json({
-        description: existingVacancy.description,
+        vacancyId: vacancyIdFromLink,
       });
     }
-    const description = await getDescriptionVacancy(id);
+    const description = await getDescriptionVacancy(vacancyInfo);
 
     if (!description) {
       return res.status(400).json({
-        message: 'Что-то пошло не так при парсинге hh',
+        message: 'Что-то пошло не так при парсинге',
       });
     }
 
     const lastVacancy = await Vacancy.findOne().sort({ vacancyId: -1 });
 
-    const newVacancy = await Vacancy.create({
+    await Vacancy.create({
       vacancyId: lastVacancy?.vacancyId ? lastVacancy?.vacancyId + 1 : 1,
       vacancyIdFromLink,
       description,
     });
 
     res.json({
-      description: newVacancy.description,
+      vacancyId: vacancyIdFromLink,
     });
   } catch (e) {
     res.status(500).json({ message: 'Ошибка сервера' });
@@ -50,16 +52,16 @@ router.get('/parse-vacancy', async (req, res) => {
 
 router.get('/generate-cover-letter', async (req, res) => {
   try {
-    const { id } = req.query;
+    const {vacancyId} = req.query as unknown as {
+      vacancyId: string;
+    };
 
-    if (!id || typeof id !== 'string') {
+    if (!vacancyId || typeof vacancyId !== 'string') {
       return res.status(400).json({ message: 'Неверные данные' });
     }
 
-    const vacancyIdFromLink = Number(id);
-
     const vacancy = await Vacancy.findOne({
-      vacancyIdFromLink,
+      vacancyIdFromLink: vacancyId,
     });
 
     if (!vacancy?.description) {

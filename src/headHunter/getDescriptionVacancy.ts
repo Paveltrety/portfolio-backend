@@ -1,26 +1,62 @@
 import { chromium } from 'playwright';
+import { E_AGGREGATOR_TYPE, IVacancyInfo } from '../types/vacancies';
+import { getBrowser } from '../utils/getBrowser';
 
-const HH_LINK_TEMPLATE = 'https://hh.ru/vacancy/';
+const URL_MAP: Record<E_AGGREGATOR_TYPE, (id: string) => string> = {
+  [E_AGGREGATOR_TYPE.HH]: (id) => `https://hh.ru/vacancy/${id}`,
 
-export const getDescriptionVacancy = async (id: string) => {
-  const browser = await chromium.launch({ headless: true });
+  [E_AGGREGATOR_TYPE.GETMATCH]: (id) => `https://getmatch.ru/vacancies/${id}`,
+};
+
+const SELECTOR_MAP: Record<E_AGGREGATOR_TYPE, string> = {
+  [E_AGGREGATOR_TYPE.HH]: '[data-qa="vacancy-description"]',
+
+  [E_AGGREGATOR_TYPE.GETMATCH]: 'section.b-vacancy-description.markdown',
+};
+
+export const getDescriptionVacancy = async ({ id, aggregatorType }: IVacancyInfo) => {
+  if (!id) throw new Error('Vacancy id required');
+
+  const browser = await getBrowser();
 
   const page = await browser.newPage({
     locale: 'ru-RU',
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
   });
 
-  await page.goto(`${HH_LINK_TEMPLATE}${id}`, {
-    waitUntil: 'domcontentloaded',
-  });
+  try {
+    await page.route('**/*', (route) => {
+      const type = route.request().resourceType();
 
-  await page.waitForSelector('[data-qa="vacancy-description"]', {
-    timeout: 15000,
-  });
+      if (type === 'image' || type === 'font' || type === 'stylesheet') {
+        route.abort();
+      } else {
+        route.continue();
+      }
+    });
 
-  const description = await page.textContent('[data-qa="vacancy-description"]');
+    const urlBuilder = URL_MAP[aggregatorType];
+    const selector = SELECTOR_MAP[aggregatorType];
 
-  await browser.close();
+    if (!urlBuilder || !selector) {
+      throw new Error('Unsupported aggregator type');
+    }
 
-  return description;
+    const url = urlBuilder(id);
+
+    await page.goto(url, {
+      waitUntil: 'domcontentloaded',
+      timeout: 20000,
+    });
+
+    await page.waitForSelector(selector, {
+      timeout: 15000,
+    });
+
+    const description = await page.$eval(selector, (el) => el.textContent?.trim() || '');
+
+    return description;
+  } finally {
+    await page.close();
+  }
 };

@@ -20,8 +20,7 @@ app.use(
     credentials: true,
   }),
 );
-console.log('CWD:', process.cwd());
-console.log('ENV FILE MONGO:', process.env.MONGO_URI);
+
 mongoose
   .connect(process.env.MONGO_URI as string)
   .then(() => console.log('MongoDB connected'))
