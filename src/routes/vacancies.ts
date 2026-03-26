@@ -68,9 +68,9 @@ router.get('/generate-cover-letter', async (req, res) => {
       return res.status(400).json({ message: 'Не удалось получить описание вакансии' });
     }
 
-    const covertLetter = await getCustomCoverLetter(vacancy.description);
+    const coverLetter = await getCustomCoverLetter(vacancy.description);
 
-    res.json({ covertLetter });
+    res.json({ coverLetter: coverLetter || '' });
   } catch {
     res.status(500).json({ message: 'Ошибка сервера' });
   }
