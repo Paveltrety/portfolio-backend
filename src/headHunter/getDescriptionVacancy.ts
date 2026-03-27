@@ -4,13 +4,13 @@ import { getBrowser } from '../utils/getBrowser';
 
 const URL_MAP: Record<E_AGGREGATOR_TYPE, (id: string) => string> = {
   [E_AGGREGATOR_TYPE.HH]: (id) => `https://hh.ru/vacancy/${id}`,
-
   [E_AGGREGATOR_TYPE.GETMATCH]: (id) => `https://getmatch.ru/vacancies/${id}`,
+  [E_AGGREGATOR_TYPE.ZARPLATA]: (id) => `https://zarplata.ru/vacancy/${id}`
 };
 
 const SELECTOR_MAP: Record<E_AGGREGATOR_TYPE, string> = {
   [E_AGGREGATOR_TYPE.HH]: '[data-qa="vacancy-description"]',
-
+  [E_AGGREGATOR_TYPE.ZARPLATA]: '[data-qa="vacancy-description"]',
   [E_AGGREGATOR_TYPE.GETMATCH]: 'section.b-vacancy-description.markdown',
 };
 
